@@ -1,12 +1,30 @@
-import { View, Text, StyleSheet, Image } from 'react-native';
-import React from 'react';
+import { View, Text, StyleSheet, Image, Button } from 'react-native';
+import React, { useState } from 'react';
+import CameraComponent from '@/components/CameraComponent';
 
 export default function SimpleProfile() {
+  const [showCamera, setShowCamera] = useState(false);
+  const [profileImage, setProfileImage] = useState(require('../../assets/images/kp.jpeg'));
+
+  const handleTakePhoto = () => {
+    setShowCamera(true);
+  };
+
+  const handlePhotoTaken = (photo) => {
+    if (photo && photo.base64) {
+      setProfileImage({ uri: `data:image/jpg;base64,${photo.base64}` });
+      setShowCamera(false);
+    }
+  };
+
+  if (showCamera) {
+    return <CameraComponent onPhotoTaken={handlePhotoTaken} />;
+  }
+
   return (
     <View style={styles.container}>
       <Image
-        // source={{ uri: 'https://static.vecteezy.com/system/resources/previews/014/194/216/original/avatar-icon-human-a-person-s-badge-social-media-profile-symbol-the-symbol-of-a-person-vector.jpg' }}
-        source={require('../../assets/images/kp.jpeg')}
+        source={profileImage}
         style={styles.avatar}
       />
 
@@ -15,6 +33,13 @@ export default function SimpleProfile() {
       <Text style={styles.bio}>
         Mobile Developer | Tech Enthusiast | Lifelong Learner
       </Text>
+      <View style={styles.buttonContainer}>
+        <Button
+          title='Take Photo'
+          color={'#800080'}
+          onPress={handleTakePhoto}
+        />
+      </View>
     </View>
   );
 }
@@ -52,4 +77,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 20,
   },
+  buttonContainer: {
+    width: '40%',
+    padding: 20,
+  }
 });

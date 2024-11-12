@@ -145,8 +145,9 @@ export default function Tasks() {
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 40,
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#e6e6fa',
     padding: 16,
   },
   header: {
