@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet, Image, Button } from 'react-native';
+import { View, Text, StyleSheet, Image, Button, Alert } from 'react-native';
 import React, { useState } from 'react';
 import CameraComponent from '@/components/CameraComponent';
+import { router } from 'expo-router';
 
 export default function SimpleProfile() {
   const [showCamera, setShowCamera] = useState(false);
@@ -15,6 +16,30 @@ export default function SimpleProfile() {
       setProfileImage({ uri: `data:image/jpg;base64,${photo.base64}` });
       setShowCamera(false);
     }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Logout',
+          onPress: () => {
+            
+            setProfileImage(require('../../assets/images/kp.jpeg'));
+            // Navigate to login screen
+            router.replace('/');
+          },
+          style: 'destructive'
+        }
+      ],
+      { cancelable: true }
+    );
   };
 
   if (showCamera) {
@@ -33,11 +58,20 @@ export default function SimpleProfile() {
       <Text style={styles.bio}>
         Mobile Developer | Tech Enthusiast | Lifelong Learner
       </Text>
+
       <View style={styles.buttonContainer}>
         <Button
           title='Take Photo'
           color={'#800080'}
           onPress={handleTakePhoto}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button 
+          title='Log out' 
+          color={'#800080'} 
+          onPress={handleLogout} 
         />
       </View>
     </View>
@@ -76,9 +110,11 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
     paddingHorizontal: 20,
+    marginBottom: 20,
   },
   buttonContainer: {
     width: '40%',
-    padding: 20,
+    marginVertical: 10,
+    borderRadius: 5
   }
 });

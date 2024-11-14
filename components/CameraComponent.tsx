@@ -95,6 +95,7 @@ const CameraComponent = ({ onPhotoTaken }: Props): JSX.Element => {
         type={facing}
         ref={cameraRef}
       >
+        
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
             <AntDesign name="retweet" size={44} color="white" />

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import {
   View,
   TextInput,
@@ -16,85 +15,70 @@ import {
   Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Picker } from '@react-native-picker/picker';
 
 const { width, height } = Dimensions.get('window');
 
-// Configure API URL based on platform and environment
-const getApiUrl = () => {
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:8080';
-  } else if (Platform.OS === 'ios') {
-    return 'http://localhost:8080';
-  } else {
-    return 'http://localhost:8080';
-  }
-};
+const API_BASE_URL = Platform.OS === 'android'
+  ? 'http://10.0.2.2:8080'
+  : 'http://localhost:8080';
 
-const API_BASE_URL = getApiUrl();
-
-// Using default parameter instead of defaultProps
-const Login = ({ onLoginSuccess = () => { } }) => {
+const Registration = () => {
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    userName: '',
+    password: '',
+    qualification: '',
+    gender: '',
+    role: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!username || !password) {
-      Alert.alert('Error', 'Please enter username and password');
+  const handleRegister = async () => {
+    if (Object.values(formData).some(value => !value)) {
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/userLogin/${username}/${password}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        }
-      );
-
-      if (response.status === 404) {
-        Alert.alert('Error', 'Invalid username or password');
-        return;
-      }
+      const response = await fetch(`${API_BASE_URL}/userInsert`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          userName: formData.userName,
+          password: formData.password,
+          qualification: formData.qualification,
+          gender: formData.gender,
+          role: formData.role
+        })
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const userData = await response.json();
+      Alert.alert(
+        'Success',
+        'Registration successful!',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/')
 
-      if (userData) {
-        console.log('Login successful:', userData);
-
-        Alert.alert(
-          'Login Successful',
-          `Welcome ${userData.userName || username}!`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                onLoginSuccess(userData);
-                router.push('/home');
-              }
-            }
-          ]
-        );
-      } else {
-        Alert.alert('Error', 'Invalid username or password');
-      }
+          }
+        ]
+      );
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Registration error:', error);
       Alert.alert(
         'Error',
-        'Failed to connect to the server. Please check your connection and try again.'
+        'Registration failed. Please check your connection and try again.'
       );
     } finally {
       setIsLoading(false);
@@ -113,21 +97,29 @@ const Login = ({ onLoginSuccess = () => { } }) => {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.innerContainer}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.backButtonText}>← Back</Text>
+            </TouchableOpacity>
+
             <View style={styles.logoContainer}>
               <Image
                 source={require('../assets/images/logo.png')}
                 style={styles.logo}
               />
-              <Text style={styles.title}>Todo App</Text>
-              <Text style={styles.subtitle}>Organize your tasks efficiently</Text>
+              <Text style={styles.title}>Create Account</Text>
+              <Text style={styles.subtitle}>Join us today</Text>
             </View>
+
             <View style={styles.formContainer}>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
                   placeholder="Username"
-                  value={username}
-                  onChangeText={setUsername}
+                  value={formData.userName}
+                  onChangeText={(text) => setFormData({ ...formData, userName: text })}
                   autoCapitalize="none"
                   placeholderTextColor="#999"
                 />
@@ -139,8 +131,8 @@ const Login = ({ onLoginSuccess = () => { } }) => {
                     style={[styles.input, styles.passwordInput]}
                     placeholder="Password"
                     secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={setPassword}
+                    value={formData.password}
+                    onChangeText={(text) => setFormData({ ...formData, password: text })}
                     placeholderTextColor="#999"
                   />
                   <TouchableOpacity
@@ -152,22 +144,58 @@ const Login = ({ onLoginSuccess = () => { } }) => {
                 </View>
               </View>
 
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Qualification"
+                  value={formData.qualification}
+                  onChangeText={(text) => setFormData({ ...formData, qualification: text })}
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              <View style={[styles.inputContainer, styles.pickerContainer]}>
+                <Picker
+                  selectedValue={formData.gender}
+                  style={styles.picker}
+                  onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                >
+                  <Picker.Item label="Select Gender" value="" />
+                  <Picker.Item label="Male" value="male" />
+                  <Picker.Item label="Female" value="female" />
+                  <Picker.Item label="Other" value="other" />
+                </Picker>
+              </View>
+
+              <View style={[styles.inputContainer, styles.pickerContainer]}>
+                <Picker
+                  selectedValue={formData.role}
+                  style={styles.picker}
+                  onValueChange={(value) => setFormData({ ...formData, role: value })}
+                >
+                  <Picker.Item label="Select Role" value="" />
+                  <Picker.Item label="Student" value="student" />
+                  <Picker.Item label="Teacher" value="teacher" />
+                  <Picker.Item label="developer" value="developer" />
+                </Picker>
+              </View>
+
               <TouchableOpacity
                 style={[styles.button, isLoading && styles.buttonDisabled]}
-                onPress={handleLogin}
+                onPress={handleRegister}
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.buttonText}>Login</Text>
+                  <Text style={styles.buttonText}>Register</Text>
                 )}
               </TouchableOpacity>
 
-              <View style={styles.signupContainer}>
-                <Text style={styles.signupText}>Don't have an account? </Text>
-                <TouchableOpacity onPress={() => props.navigation.navigate("Register")}>
-                  <Text style={styles.signupLink}>Sign Up</Text>
+              <View style={styles.loginContainer}>
+                <Text style={styles.loginText}>Already have an account? </Text>
+                <TouchableOpacity onPress={() => router.push('/login')}>
+                  <Text style={styles.loginLink}>Login</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -177,13 +205,6 @@ const Login = ({ onLoginSuccess = () => { } }) => {
     </SafeAreaView>
   );
 };
-
-Login.propTypes = {
-  onLoginSuccess: PropTypes.func
-};
-
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -195,14 +216,26 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
-    justifyContent: 'center',
     minHeight: height,
+    paddingTop: Platform.OS === 'ios' ? 40 : 60,
   },
   innerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
     width: '100%',
+  },
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 0 : 20,
+    left: 20,
+    zIndex: 1,
+    padding: 10,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#800080',
+    fontWeight: '600',
   },
   logoContainer: {
     alignItems: 'center',
@@ -265,6 +298,17 @@ const styles = StyleSheet.create({
     height: 55,
     justifyContent: 'center',
   },
+  pickerContainer: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#eee',
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 55,
+    width: '100%',
+  },
   button: {
     backgroundColor: '#800080',
     height: 55,
@@ -280,7 +324,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
-    width: '100%',
   },
   buttonDisabled: {
     backgroundColor: '#b366b3',
@@ -290,20 +333,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  signupContainer: {
+  loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 25,
   },
-  signupText: {
+  loginText: {
     color: '#666',
     fontSize: 15,
   },
-  signupLink: {
+  loginLink: {
     color: '#800080',
     fontSize: 15,
     fontWeight: '600',
   },
 });
 
-export default Login;
+export default Registration;
